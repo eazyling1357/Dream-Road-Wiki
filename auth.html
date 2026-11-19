@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Вход — Dream Road Wiki</title>
+  <meta name="robots" content="noindex">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+  <style>
+    body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
+      font-family:Inter,system-ui,sans-serif; background:#0a0a0c; color:#f0f0f5; }
+    .card { background:#1a1a20; border:1px solid #2a2a35; border-radius:16px; padding:32px; width:100%; max-width:400px; }
+    h1 { font-family:Orbitron,sans-serif; font-size:1.2rem; margin:0 0 8px; }
+    p { color:#a0a0b0; font-size:0.9rem; }
+    label { display:block; margin:12px 0 6px; font-size:0.85rem; color:#a0a0b0; }
+    input { width:100%; padding:12px; border-radius:8px; border:1px solid #2a2a35; background:#121216; color:#fff; box-sizing:border-box; }
+    button { width:100%; margin-top:16px; padding:12px; border:0; border-radius:8px; font-weight:600; cursor:pointer;
+      background:linear-gradient(135deg,#e63946,#f77f00); color:#fff; }
+    a { color:#00d4ff; }
+    .err { color:#e63946; font-size:0.85rem; margin-top:8px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Dream Road Wiki</h1>
+    <p>Вход для админ-панели. Нужен запущенный API.</p>
+    <form id="f">
+      <label>Логин</label>
+      <input name="username" required minlength="3" value="admin">
+      <label>Пароль</label>
+      <input name="password" type="password" required minlength="6">
+      <button type="submit">Войти</button>
+      <div class="err" id="err"></div>
+    </form>
+    <p style="margin-top:16px"><a href="index.html">← На главную</a></p>
+  </div>
+  <script>
+    document.getElementById('f').onsubmit = async (e) => {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const body = { username: fd.get('username'), password: fd.get('password') };
+      try {
+        const res = await fetch('/api/auth/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Error');
+        sessionStorage.setItem('drw_api_token', data.token);
+        sessionStorage.setItem('drw_user', JSON.stringify(data.user));
+        location.href = data.user.role === 'admin' ? 'admin/dashboard.html' : 'index.html';
+      } catch (err) {
+        document.getElementById('err').textContent = err.message + ' (нужен backend)';
+      }
+    };
+  </script>
+</body>
+</html>
